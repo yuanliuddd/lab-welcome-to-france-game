@@ -18,7 +18,6 @@ class GameBoard {
     return cellsArr;
   }
 }
-
 const board = new GameBoard(10, 10);
 
 function fisherYatesShuffle(arr) {
@@ -86,7 +85,6 @@ function getRandomUnoccupiedCell() {
   const unoccupiedCells = board.cells.filter((boardCell) => {
     return !occupiedCells.includes(boardCell);
   });
-
   return getRandomSelection(1, unoccupiedCells)[0];
 }
 
@@ -94,15 +92,51 @@ const player = {
   className: "player",
   cell: getRandomUnoccupiedCell(),
   show() {
+    console.log(this.cell);
     this.cell.classList.add("player");
   },
   hide() {
     // iteration 3
   },
-  move(direction) {},
-  canMove(direction) {
-    // hint for iteration 3: make move behavior conditional
+  move(direction) {
+    const directionObj = ["up", "right", "down", "left"];
+
+    directionObj.forEach((key, keyIndex) => {
+      if (key === direction) {
+        this.cell.classList.remove("player");
+        let numbers = keyIndex % 2 === 0 ? 10 : 1;
+        let index = 0;
+
+        if (keyIndex > 0 && keyIndex < 3) {
+          if (
+            keyIndex === 1 &&
+            (this.cell.dataset.index[1] === "9" || this.cell.dataset.index ==='9')
+          ) {
+            index = +this.cell.dataset.index;
+          } else {
+            index = +this.cell.dataset.index + numbers;
+          }
+        } else {
+          if (keyIndex === 3 && +this.cell.dataset.index % 10 ===0 ) {
+            index = +this.cell.dataset.index;
+          } else {
+            index = +this.cell.dataset.index - numbers;
+          }
+        }
+
+        if (index > 99 || index < 0) {
+          index = +this.cell.dataset.index;
+        }
+        // else if (index % 10 === 0 || index % 9 === 0)
+
+        this.cell = board.cells.find((cell, i) => {
+          return i === index ? cell : null;
+        });
+        this.show();
+      }
+    });
   },
+  canMove(direction) {},
   _detectCollisions() {
     // iteration 4
     // how do we detect collisions with items
@@ -118,12 +152,12 @@ const game = {
   winAudio: null,
   win() {
     // iteration 4
+    this.isStarted = false;
   },
   start() {
+    this.isStarted = true;
     distributeCollectibles();
-    console.log(player.cell);
     player.show();
-    // show the player
     // iteration 4
     // reset the inventory
     // iteration 5
@@ -134,7 +168,11 @@ const game = {
 const startButton = document.querySelector("button#start");
 
 startButton.addEventListener("click", () => {
-  game.start();
+  if (game.isStarted) {
+    return;
+  } else {
+    game.start();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
