@@ -36,20 +36,22 @@ function getRandomSelection(n, array) {
   return selected;
 }
 const inventoryDivList = document.querySelector(".inventory");
+let listClassName;
+
 const inventory = {
   element: null,
   add() {
     collectibles.forEach((ele) => {
-      const eleName = ele.className; 
+      const eleName = ele.className;
       if (player.cell.classList.contains(eleName)) {
         ele.collect();
-        ele.hide(); 
+        ele.hide();
         inventoryDivList.appendChild(this.element);
       }
-    }); 
+    });
   },
   clear() {
-    // iteration 3 (reset behavior)
+    this.element = null;
   },
 };
 
@@ -61,13 +63,13 @@ class Collectible {
   }
   hide() {
     this.cell.classList.remove(this.className);
-    this.cell = null; 
+    this.cell = null;
   }
   collect() {
-    const temp = document.createElement('div'); 
-    temp.classList.add('item'); 
-    temp.classList.add(`${this.className}`)
-    inventory.element = temp; 
+    const temp = document.createElement("div");
+    temp.classList.add("item");
+    temp.classList.add(`${this.className}`);
+    inventory.element = temp;
   }
   display() {
     this.cell.classList.add(this.className);
@@ -103,11 +105,10 @@ const player = {
   className: "player",
   cell: getRandomUnoccupiedCell(),
   show() {
-    console.log(this.cell);
     this.cell.classList.add("player");
   },
   hide() {
-    // iteration 3
+    this.cell.classList.remove("player");
   },
   move(direction) {
     const directionObj = ["up", "right", "down", "left"];
@@ -121,14 +122,15 @@ const player = {
         if (keyIndex > 0 && keyIndex < 3) {
           if (
             keyIndex === 1 &&
-            (this.cell.dataset.index[1] === "9" || this.cell.dataset.index ==='9')
+            (this.cell.dataset.index[1] === "9" ||
+              this.cell.dataset.index === "9")
           ) {
             index = +this.cell.dataset.index;
           } else {
             index = +this.cell.dataset.index + numbers;
           }
         } else {
-          if (keyIndex === 3 && +this.cell.dataset.index % 10 ===0 ) {
+          if (keyIndex === 3 && +this.cell.dataset.index % 10 === 0) {
             index = +this.cell.dataset.index;
           } else {
             index = +this.cell.dataset.index - numbers;
@@ -143,16 +145,70 @@ const player = {
           return i === index ? cell : null;
         });
         this.show();
-        inventory.add()
+        this._detectCollisions();
+        game.win();
       }
     });
   },
   canMove(direction) {},
   _detectCollisions() {
-    
-    // iteration 4
-    // how do we detect collisions with items
-    // when do we call this?
+    listClassName = [...inventoryDivList.children].map((ele) =>
+      ele.className.slice(5)
+    );
+
+    this.cell.classList.contains("sim-card") ? inventory.add() : null;
+    this.cell.classList.contains("apartment") ? inventory.add() : null;
+
+    if (listClassName.length < 1) {
+      if (
+        this.cell.classList.contains("sim-card") ||
+        this.cell.classList.contains("apartment")
+      ) {
+        inventory.add();
+      } else {
+        this.cell.classList.contains("compte-bancaire")
+          ? window.alert("You must collect sim-card first!")
+          : null;
+        this.cell.classList.contains("carte-vitale")
+          ? window.alert("You must collect apartment, job first!")
+          : null;
+        this.cell.classList.contains("job")
+          ? window.alert("You must collect titre-de-sejour first!")
+          : null;
+        this.cell.classList.contains("titre-de-sejour")
+          ? window.alert("You must collect apartment first!")
+          : null;
+      }
+    } else {
+      if (this.cell.classList.contains("compte-bancaire")) {
+        if (listClassName.includes("sim-card")) {
+          inventory.add();
+        } else {
+          window.alert("You must collect sim-card first!");
+        }
+      } else if (this.cell.classList.contains("carte-vitale")) {
+        if (
+          listClassName.includes("job") &&
+          listClassName.includes("apartment")
+        ) {
+          inventory.add();
+        } else {
+          window.alert("You must collect apartment, job first!");
+        }
+      } else if (this.cell.classList.contains("job")) {
+        if (listClassName.includes("titre-de-sejour")) {
+          inventory.add();
+        } else {
+          window.alert("You must collect titre-de-sejour first!");
+        }
+      } else if (this.cell.classList.contains("titre-de-sejour")) {
+        if (listClassName.includes("apartment")) {
+          inventory.add();
+        } else {
+          window.alert("You must collect apartment first!");
+        }
+      }
+    }
   },
 };
 
@@ -163,15 +219,18 @@ const game = {
   // iteration 5
   winAudio: null,
   win() {
-    // iteration 4
-    this.isStarted = false;
+    if (listClassName.length === 6) {
+      this.isStarted = false;
+      inventory.clear();
+      player.hide();
+      window.alert('You won !')
+    }
   },
   start() {
+    [...inventoryDivList.children].forEach(ele=>ele.remove())
     this.isStarted = true;
     distributeCollectibles();
     player.show();
-    // iteration 4
-    // reset the inventory
     // iteration 5
     // reset the music
   },
