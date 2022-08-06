@@ -35,11 +35,18 @@ function getRandomSelection(n, array) {
   const selected = cloned.slice(0, n);
   return selected;
 }
-
+const inventoryDivList = document.querySelector(".inventory");
 const inventory = {
   element: null,
   add() {
-    // iteration 3
+    collectibles.forEach((ele) => {
+      const eleName = ele.className; 
+      if (player.cell.classList.contains(eleName)) {
+        ele.collect();
+        ele.hide(); 
+        inventoryDivList.appendChild(this.element);
+      }
+    }); 
   },
   clear() {
     // iteration 3 (reset behavior)
@@ -53,10 +60,14 @@ class Collectible {
     this.isCollected = false;
   }
   hide() {
-    // reset behavior
+    this.cell.classList.remove(this.className);
+    this.cell = null; 
   }
   collect() {
-    // iteration 4
+    const temp = document.createElement('div'); 
+    temp.classList.add('item'); 
+    temp.classList.add(`${this.className}`)
+    inventory.element = temp; 
   }
   display() {
     this.cell.classList.add(this.className);
@@ -127,17 +138,18 @@ const player = {
         if (index > 99 || index < 0) {
           index = +this.cell.dataset.index;
         }
-        // else if (index % 10 === 0 || index % 9 === 0)
 
         this.cell = board.cells.find((cell, i) => {
           return i === index ? cell : null;
         });
         this.show();
+        inventory.add()
       }
     });
   },
   canMove(direction) {},
   _detectCollisions() {
+    
     // iteration 4
     // how do we detect collisions with items
     // when do we call this?
